@@ -1,17 +1,16 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-// Convert from base (2..36) string to decimal string
+// Convert base-N string to decimal string
 string decodeBaseString(const string &s, int base) {
     string digits = "0123456789abcdefghijklmnopqrstuvwxyz";
     string result = "0";
 
     for (char ch : s) {
         int val = digits.find(tolower(ch));
-        if (val < 0 || val >= base) return "-1"; // invalid digit
+        if (val < 0 || val >= base) return "-1";
 
         // Multiply result by base
-        string tmp = "0";
         int carry = 0;
         for (int i = result.size()-1; i>=0; --i) {
             int digit = result[i]-'0';
@@ -21,34 +20,30 @@ string decodeBaseString(const string &s, int base) {
         }
         while (carry) {
             result = char(carry%10+'0') + result;
-            carry/=10;
+            carry /=10;
         }
 
         // Add val
         carry = val;
-        for (int i=result.size()-1;i>=0;i--) {
+        for (int i=result.size()-1;i>=0;i--){
             int sum = (result[i]-'0') + carry;
             result[i] = (sum % 10) + '0';
             carry = sum / 10;
         }
         while(carry){
             result = char(carry%10+'0') + result;
-            carry /=10;
+            carry/=10;
         }
     }
-    // Remove leading zeros
     size_t pos = result.find_first_not_of('0');
     if (pos != string::npos) return result.substr(pos);
     return "0";
 }
 
-// Load JSON-like data into map<string, pair<int,string>>
+// Load JSON data
 map<string, pair<int,string>> loadJson(const string &filename) {
     ifstream in(filename);
-    if (!in) {
-        cerr << "Could not open " << filename << endl;
-        return {};
-    }
+    if (!in) { cerr<<"Cannot open "<<filename<<endl; return {}; }
     string content((istreambuf_iterator<char>(in)), istreambuf_iterator<char>());
     map<string, pair<int,string>> result;
 
@@ -65,26 +60,26 @@ map<string, pair<int,string>> loadJson(const string &filename) {
     return result;
 }
 
-int main(int argc, char *argv[]) {
-    double a=2, b=-5, c=3; // default
+int main(int argc, char *argv[]){
+    long double a=2.0L, b=-5.0L, c=3.0L;
     if(argc>=4){
-        a = atof(argv[1]);
-        b = atof(argv[2]);
-        c = atof(argv[3]);
+        a = stold(argv[1]);
+        b = stold(argv[2]);
+        c = stold(argv[3]);
     }
 
     // Solve quadratic
-    double D = b*b - 4*a*c;
+    long double D = b*b - 4.0L*a*c;
     vector<string> roots;
-    if(a==0){
-        if(b!=0) roots.push_back(to_string(-c/b));
-    } else if(D>0){
-        roots = {to_string((-b+sqrt(D))/(2*a)), to_string((-b-sqrt(D))/(2*a))};
-    } else if(D==0){
-        roots.push_back(to_string(-b/(2*a)));
+    if(a==0.0L){
+        if(b!=0.0L) roots.push_back(to_string(-c/b));
+    } else if(D>0.0L){
+        roots = {to_string((-b+sqrtl(D))/(2.0L*a)), to_string((-b-sqrtl(D))/(2.0L*a))};
+    } else if(D==0.0L){
+        roots.push_back(to_string(-b/(2.0L*a)));
     } else {
-        double real = -b/(2*a);
-        double imag = sqrt(-D)/(2*a);
+        long double real = -b/(2.0L*a);
+        long double imag = sqrtl(-D)/(2.0L*a);
         roots = {to_string(real)+"+"+to_string(imag)+"i", to_string(real)+"-"+to_string(imag)+"i"};
     }
 
@@ -95,19 +90,18 @@ int main(int argc, char *argv[]) {
     data.insert(d1.begin(), d1.end());
     data.insert(d2.begin(), d2.end());
 
-    // Process test cases
     vector<map<string,string>> testCases;
-    for(auto &kv : data){
-        string key = kv.first;
+    for(auto &kv:data){
+        string x_str = kv.first;
         int base = kv.second.first;
         string rawVal = kv.second.second;
-        string y_decimal = decodeBaseString(rawVal, base);
 
-        // Evaluate polynomial f(x) = ax^2 + bx + c
-        double fx = a*stod(key)*stod(key) + b*stod(key) + c;
+        string y_decimal = decodeBaseString(rawVal, base);
+        long double x_val = stold(x_str);
+        long double fx = a*x_val*x_val + b*x_val + c;
 
         map<string,string> entry;
-        entry["x"] = key;
+        entry["x"] = x_str;
         entry["base"] = to_string(base);
         entry["value_raw"] = rawVal;
         entry["y_decimal"] = y_decimal;
@@ -116,29 +110,29 @@ int main(int argc, char *argv[]) {
         testCases.push_back(entry);
     }
 
-    // Print JSON
-    cout << "{\n";
-    cout << "  \"polynomial\": \"f(x)="<<a<<"x^2+"<<b<<"x+"<<c<<"\",\n";
-    cout << "  \"coefficients\": {\"a\": "<<a<<", \"b\": "<<b<<", \"c\": "<<c<<"},\n";
-    cout << "  \"roots\": [";
+    // Output JSON
+    cout<<"{\n";
+    cout<<"  \"polynomial\": \"f(x)="<<a<<"x^2+"<<b<<"x+"<<c<<"\",\n";
+    cout<<"  \"coefficients\": {\"a\":"<<a<<",\"b\":"<<b<<",\"c\":"<<c<<"},\n";
+    cout<<"  \"roots\": [";
     for(size_t i=0;i<roots.size();i++){
         cout<<"\""<<roots[i]<<"\"";
         if(i+1<roots.size()) cout<<",";
     }
-    cout << "],\n";
+    cout<<"],\n";
 
-    cout << "  \"test_cases\": [\n";
+    cout<<"  \"test_cases\": [\n";
     for(size_t i=0;i<testCases.size();i++){
         auto &t = testCases[i];
-        cout<<"    {\"x\":\""<<t["x"]<<"\",\"base\":"
-            <<t["base"]<<",\"value_raw\":\""<<t["value_raw"]
+        cout<<"    {\"x\":\""<<t["x"]<<"\",\"base\":"<<t["base"]
+            <<",\"value_raw\":\""<<t["value_raw"]
             <<"\",\"y_decimal\":\""<<t["y_decimal"]
             <<"\",\"f_x\":\""<<t["f_x"]<<"\"}";
         if(i+1<testCases.size()) cout<<",";
         cout<<"\n";
     }
-    cout << "  ]\n";
-    cout << "}\n";
+    cout<<"  ]\n";
+    cout<<"}\n";
 
     return 0;
 }
