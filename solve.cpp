@@ -1,14 +1,14 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-// Convert base-N string to decimal string
+// Convert base-N string to decimal string (safe for very large numbers)
 string decodeBaseString(const string &s, int base) {
     string digits = "0123456789abcdefghijklmnopqrstuvwxyz";
     string result = "0";
 
     for (char ch : s) {
         int val = digits.find(tolower(ch));
-        if (val < 0 || val >= base) return "-1";
+        if (val < 0 || val >= base) return "-1"; // invalid digit
 
         // Multiply result by base
         int carry = 0;
@@ -40,7 +40,7 @@ string decodeBaseString(const string &s, int base) {
     return "0";
 }
 
-// Load JSON data
+// Load JSON-like file into map<string, pair<int,string>>
 map<string, pair<int,string>> loadJson(const string &filename) {
     ifstream in(filename);
     if (!in) { cerr<<"Cannot open "<<filename<<endl; return {}; }
